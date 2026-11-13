@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>محرر الهدية (خاص بيك)</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;color:#fff;font-family:Segoe UI,Tahoma,sans-serif;min-height:100vh;text-align:center}
+#bgVideo,#bgImage{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:brightness(.42)}
+#bgImage{display:none}
+.overlay{position:fixed;inset:0;background:#0006;z-index:1;pointer-events:none}
+.content{position:relative;z-index:2;min-height:100vh;padding:45px 20px 30px;display:flex;flex-direction:column;align-items:center;justify-content:space-between}
+.top{margin-top:20px}
+.subtitle{font-size:11px;letter-spacing:5px;color:#ccc;margin-bottom:10px}
+h1{font-size:28px;font-weight:300}
+.message{font-size:19px;line-height:2.2;max-width:600px;margin:30px auto}
+.music{margin:20px auto;background:#ffffff22;border:1px solid #ffffff55;color:white;border-radius:30px;padding:12px 22px;cursor:pointer}
+.editor{position:relative;z-index:5;background:#171717;border:1px solid #555;border-radius:16px;padding:18px;width:92%;max-width:480px;margin:25px auto;color:white;text-align:right}
+.editor h2{font-size:18px;margin-bottom:12px}
+.editor label{display:block;font-size:14px;margin:12px 0 5px}
+.editor input,.editor textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #666;background:#262626;color:white}
+.editor textarea{min-height:75px}
+.editor button{margin-top:14px;padding:10px 16px;border:0;border-radius:8px;cursor:pointer}
+.hint{font-size:12px;color:#bbb;margin-top:10px}
+.linkbox{direction:ltr;text-align:left;word-break:break-all;background:#262626;border:1px solid #666;border-radius:8px;padding:10px;font-size:12px;margin-top:10px;display:none}
+</style>
+</head>
+<body>
+
+<video id="bgVideo" autoplay muted loop playsinline>
+<source src="videos/video1.mp4" type="video/mp4">
+</video>
+<img id="bgImage" alt="خلفية الهدية">
+<div class="overlay"></div>
+
+<main class="content">
+<section class="top">
+<h1 id="title">To شخص مميز</h1>
+</section>
+
+<p class="message" id="message">أنت دلوقتي كل حياتي، وكل دقيقة بتعدي جنبك بحس إنها بداية جديدة لينا.</p>
+
+<section>
+<button class="music" id="musicButton">▶ تشغيل الأغنية</button>
+<audio id="audioPlayer" loop></audio>
+</section>
+</main>
+
+<section class="editor">
+<h2>تخصيص الهدية (معاينة)</h2>
+
+<label>الاسم</label>
+<input id="nameInput" placeholder="اكتب الاسم">
+
+<label>الكلام</label>
+<textarea id="messageInput" placeholder="اكتب الرسالة هنا"></textarea>
+
+<label>اختيار فيديو</label>
+<input id="videoInput" type="file" accept="video/*">
+
+<label>اختيار صورة</label>
+<input id="imageInput" type="file" accept="image/*">
+
+<label>اختيار أغنية</label>
+<input id="audioInput" type="file" accept="audio/*">
+
+<button id="applyButton">تطبيق الاسم والكلام</button>
+<p class="hint">اختيارات الوسائط للمعاينة على هذا الجهاز فقط.</p>
+
+<hr style="margin:18px 0;border-color:#444">
+
+<h2>رابط العميل</h2>
+<label>عنوان صفحة العميل بعد ما ترفعها (مثال: https://site.com/gift/index.html)</label>
+<input id="baseInput" dir="ltr" placeholder="index.html" value="index.html">
+<button id="linkButton">إنشاء رابط العميل</button>
+<div class="linkbox" id="linkBox"></div>
+<button id="copyButton" style="display:none">نسخ الرابط</button>
+<p class="hint">الرابط ده بيحمل الاسم والكلام. ابعته للعميل، وهو ملوش أي لوحة تعديل.</p>
+
+<hr style="margin:18px 0;border-color:#444">
+
+<h2>تصدير نسخة العميل (ملف واحد)</h2>
+<p class="hint" style="margin-bottom:6px">بياخد الاسم والكلام والفيديو/الصورة والأغنية اللي اخترتهم فوق، ويطلّعهم في ملف HTML واحد جاهز تبعته للعميل من غير فولدرات. كل ما الفيديو أكبر، الملف بيكبر.</p>
+<button id="exportButton">تصدير ملف العميل</button>
+<p class="hint" id="exportStatus"></p>
+</section>
+
+<script>
+const DEFAULT_MSG='أنت دلوقتي كل حياتي، وكل دقيقة بتعدي جنبك بحس إنها بداية جديدة لينا.';
+const title=document.getElementById('title');
+const message=document.getElementById('message');
+const video=document.getElementById('bgVideo');
+const image=document.getElementById('bgImage');
+const audio=document.getElementById('audioPlayer');
+
+document.getElementById('applyButton').onclick=()=>{
+const name=document.getElementById('nameInput').value.trim();
+const msg=document.getElementById('messageInput').value.trim();
+title.textContent=name?'To: '+name:'To شخص مميز';
+message.textContent=msg||DEFAULT_MSG;
+};
+
+document.getElementById('videoInput').onchange=e=>{
+if(!e.target.files[0])return;
+video.src=URL.createObjectURL(e.target.files[0]);
+video.load();
+video.play().catch(()=>{});
+video.style.display='block';
+image.style.display='none';
+};
+
+document.getElementById('imageInput').onchange=e=>{
+if(!e.target.files[0])return;
+image.src=URL.createObjectURL(e.target.files[0]);
+image.style.display='block';
+video.style.display='none';
+};
+
+document.getElementById('audioInput').onchange=e=>{
+if(!e.target.files[0])return;
+audio.src=URL.createObjectURL(e.target.files[0]);
+};
+
+document.getElementById('musicButton').onclick=async()=>{
+if(!audio.src){alert('اختار أغنية الأول');return;}
+if(audio.paused){
+try{await audio.play();document.getElementById('musicButton').textContent='⏸ إيقاف مؤقت';}
+catch{alert('تعذر تشغيل الأغنية');}
+}else{
+audio.pause();
+document.getElementById('musicButton').textContent='▶ تشغيل الأغنية';
+}
+};
+
+/* تصدير نسخة العميل كملف واحد */
+const CLIENT_TPL=`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>هدية خاصة</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;color:#fff;font-family:Segoe UI,Tahoma,sans-serif;min-height:100vh;text-align:center}
+#bgVideo,#bgImage{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:brightness(.42)}
+#bgImage{display:none}
+.overlay{position:fixed;inset:0;background:#0006;z-index:1;pointer-events:none}
+.content{position:relative;z-index:2;min-height:100vh;padding:45px 20px 30px;display:flex;flex-direction:column;align-items:center;justify-content:space-between}
+.top{margin-top:20px}
+h1{font-size:28px;font-weight:300}
+.message{font-size:19px;line-height:2.2;max-width:600px;margin:30px auto}
+.music{margin:20px auto;background:#ffffff22;border:1px solid #ffffff55;color:white;border-radius:30px;padding:12px 22px;cursor:pointer}
+</style>
+</head>
+<body>
+<video id="bgVideo" autoplay muted loop playsinline></video>
+<img id="bgImage" alt="خلفية الهدية">
+<div class="overlay"></div>
+<main class="content">
+<section class="top"><h1 id="title"></h1></section>
+<p class="message" id="message"></p>
+<section>
+<button class="music" id="musicButton">▶ تشغيل الأغنية</button>
+<audio id="audioPlayer" loop></audio>
+</section>
+</main>
+<script>
+const D=__DATA__;
+document.getElementById('title').textContent=D.name?'To: '+D.name:'To شخص مميز';
+document.getElementById('message').textContent=D.msg;
+const v=document.getElementById('bgVideo');
+const img=document.getElementById('bgImage');
+const a=document.getElementById('audioPlayer');
+const btn=document.getElementById('musicButton');
+if(D.video){v.src=D.video;v.play().catch(function(){});}
+else{v.style.display='none';if(D.image){img.src=D.image;img.style.display='block';}}
+if(D.audio){a.src=D.audio;}else{btn.style.display='none';}
+btn.onclick=async function(){
+if(a.paused){
+try{await a.play();btn.textContent='⏸ إيقاف مؤقت';}
+catch(e){alert('تعذر تشغيل الأغنية');}
+}else{a.pause();btn.textContent='▶ تشغيل الأغنية';}
+};
+<\/script>
+</body>
+</html>`;
+
+function readAsDataURL(file){
+return new Promise((res,rej)=>{
+const r=new FileReader();
+r.onload=()=>res(r.result);
+r.onerror=()=>rej(r.error);
+r.readAsDataURL(file);
+});
+}
+
+document.getElementById('exportButton').onclick=async()=>{
+const status=document.getElementById('exportStatus');
+status.textContent='جاري التجهيز...';
+try{
+const vf=document.getElementById('videoInput').files[0];
+const imf=document.getElementById('imageInput').files[0];
+const af=document.getElementById('audioInput').files[0];
+const data={
+name:document.getElementById('nameInput').value.trim(),
+msg:document.getElementById('messageInput').value.trim()||DEFAULT_MSG,
+video:vf?await readAsDataURL(vf):'',
+image:imf?await readAsDataURL(imf):'',
+audio:af?await readAsDataURL(af):''
+};
+const json=JSON.stringify(data).replace(/</g,'\\u003c');
+const html=CLIENT_TPL.replace('__DATA__',()=>json);
+const blob=new Blob([html],{type:'text/html'});
+const a=document.createElement('a');
+a.href=URL.createObjectURL(blob);
+a.download='gift.html';
+document.body.appendChild(a);
+a.click();
+a.remove();
+status.textContent='تم! الملف gift.html اتحفظ، حجمه '+(blob.size/1048576).toFixed(1)+' ميجا. ده اللي تبعته للعميل.';
+}catch(e){
+status.textContent='حصلت مشكلة في التصدير، جرّب بملفات أصغر.';
+}
+};
+
+/* إنشاء رابط العميل */
+const linkBox=document.getElementById('linkBox');
+const copyButton=document.getElementById('copyButton');
+document.getElementById('linkButton').onclick=()=>{
+const name=document.getElementById('nameInput').value.trim();
+const msg=document.getElementById('messageInput').value.trim();
+const base=document.getElementById('baseInput').value.trim()||'index.html';
+const p=new URLSearchParams();
+if(name)p.set('name',name);
+if(msg)p.set('msg',msg);
+const url=base+(p.toString()?'?'+p.toString():'');
+linkBox.textContent=url;
+linkBox.style.display='block';
+copyButton.style.display='inline-block';
+};
+copyButton.onclick=async()=>{
+try{await navigator.clipboard.writeText(linkBox.textContent);copyButton.textContent='تم النسخ ✓';}
+catch{alert('انسخ الرابط يدوياً');}
+};
+</script>
+</body>
+</html>
