@@ -48,11 +48,8 @@
     <script>
         async function loadGift() {
             try {
-                // بنقرا اسم الملف من اللينك، لو مش مكتوب بياخد data.json الافتراضي
-                const urlParams = new URLSearchParams(window.location.search);
-                const jsonFile = urlParams.get('file') || 'data.json';
-
-                const response = await fetch(jsonFile);
+                // بيدور على ملف data.json اللي إنت رافعه ويقرا منه البيانات أوتوماتيك
+                const response = await fetch('data.json');
                 const data = await response.json();
 
                 document.getElementById('name').innerText = data.n || "هدية لك";
@@ -65,9 +62,7 @@
                     waBtn.style.display = "inline-block";
                 }
             } catch (error) {
-                document.getElementById('name').innerText = "تاج";
-                document.getElementById('message').innerText = "بحبك";
-                document.getElementById('signature').innerText = "توقيع: ABDOO";
+                document.getElementById('name').innerText = "خطأ في تحميل البيانات";
             }
         }
         loadGift();
