@@ -39,11 +39,38 @@
 <body>
 
     <div class="card">
-        <h1 id="name">تاج</h1>
-        <p id="message">بحبك</p>
-        <div class="sig" id="signature">توقيع: ABDOO</div>
-        <a id="whatsapp" href="https://wa.me/201140646342" class="btn" target="_blank">تواصل عبر واتساب</a>
+        <h1 id="name">جاري تحميل الهدية...</h1>
+        <p id="message"></p>
+        <div class="sig" id="signature"></div>
+        <a id="whatsapp" href="#" class="btn" target="_blank" style="display:none;">تواصل عبر واتساب</a>
     </div>
 
+    <script>
+        async function loadGift() {
+            try {
+                // بنقرا اسم الملف من اللينك، لو مش مكتوب بياخد data.json الافتراضي
+                const urlParams = new URLSearchParams(window.location.search);
+                const jsonFile = urlParams.get('file') || 'data.json';
+
+                const response = await fetch(jsonFile);
+                const data = await response.json();
+
+                document.getElementById('name').innerText = data.n || "هدية لك";
+                document.getElementById('message').innerText = data.m || "";
+                document.getElementById('signature').innerText = data.sig ? "توقيع: " + data.sig : "";
+                
+                if (data.wa) {
+                    const waBtn = document.getElementById('whatsapp');
+                    waBtn.href = "https://wa.me/" + data.wa;
+                    waBtn.style.display = "inline-block";
+                }
+            } catch (error) {
+                document.getElementById('name').innerText = "تاج";
+                document.getElementById('message').innerText = "بحبك";
+                document.getElementById('signature').innerText = "توقيع: ABDOO";
+            }
+        }
+        loadGift();
+    </script>
 </body>
 </html>
