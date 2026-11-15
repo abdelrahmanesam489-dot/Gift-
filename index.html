@@ -138,6 +138,7 @@ body[data-style="rose"] .msg-wrap,body[data-style="party"] .msg-wrap{backdrop-fi
   <p class="notice" id="errorText"></p>
 </section>
 
+<!--@@GIFT@@-->
 <script>
 /* SHA-256 (pure JS, same result everywhere) */
 function sha256(str){
@@ -213,8 +214,21 @@ function b64urlDecode(s) {
 }
 
 var LOCAL = {};
+var EMBED = {};
+
+function dataToBlobUrl(uri) {
+  var i = uri.indexOf(','), mime = uri.slice(5, i).split(';')[0] || 'application/octet-stream';
+  var bin = atob(uri.slice(i + 1)), bytes = new Uint8Array(bin.length);
+  for (var k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
+  return URL.createObjectURL(new Blob([bytes], { type: mime }));
+}
 
 function loadConfig() {
+  /* هدية ملف واحد: البيانات والوسائط جوه الملف نفسه */
+  if (window.__GIFT__) {
+    EMBED = window.__GIFT__.media || {};
+    return Promise.resolve(window.__GIFT__.cfg || DEMO);
+  }
   var p = new URLSearchParams(location.search);
   var d = p.get('d'), c = p.get('c');
   /* معاينة من المولّد: ملفات من جهازك بتتبعت للصفحة مباشرة */
@@ -249,7 +263,9 @@ function loadConfig() {
 
 function localOr(kind, name) {
   var f = LOCAL && LOCAL[kind];
-  return f ? URL.createObjectURL(f) : mediaPath(kind, name);
+  if (f) return URL.createObjectURL(f);
+  if (EMBED && EMBED[kind]) return dataToBlobUrl(EMBED[kind]);
+  return mediaPath(kind, name);
 }
 
 function showError(text) {
