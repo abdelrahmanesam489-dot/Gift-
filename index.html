@@ -333,9 +333,15 @@ function setup() {
   /* الأغنية */
   if (cfg.a) {
     audio = new Audio();
-    audio.loop = true;
+    var AS = Math.max(0, Number(cfg.as) || 0);
+    audio.loop = !AS;
     audio.preload = 'auto';
     audio.src = localOr('a', cfg.a);
+    if (AS) {
+      var seek = function () { try { if (audio.currentTime < AS - 1) audio.currentTime = AS; } catch (e) {} };
+      audio.addEventListener('loadedmetadata', seek);
+      audio.addEventListener('ended', function () { try { audio.currentTime = AS; audio.play().catch(function () {}); } catch (e) {} });
+    }
     audio.addEventListener('error', function () { $('musicBtn').hidden = true; });
   }
 
@@ -419,6 +425,8 @@ $('openBtn').addEventListener('click', function () {
   }
   if (audio) {
     $('musicBtn').hidden = false;
+    var AS2 = Math.max(0, Number(cfg.as) || 0);
+    if (AS2) { try { audio.currentTime = AS2; } catch (e) {} }
     var ap = audio.play();
     if (ap && ap.then) {
       ap.catch(function () { $('musicBtn').textContent = 'تشغيل الموسيقى'; });
